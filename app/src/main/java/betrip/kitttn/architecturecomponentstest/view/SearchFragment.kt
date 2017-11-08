@@ -10,7 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
-import betrip.kitttn.architecturecomponentstest.di.modules.SearchResultsViewModelFactory
+import betrip.kitttn.architecturecomponentstest.di.modules.Factory
 import betrip.kitttn.architecturecomponentstest.vm.EnteredTextViewModel
 import betrip.kitttn.architecturecomponentstest.vm.SearchResultsViewModel
 import kotlinx.android.synthetic.main.fragment_search.*
@@ -26,7 +26,7 @@ class SearchFragment : ComponentFragment() {
         private val TAG = "SearchFragment"
     }
 
-    @Inject lateinit var factory: SearchResultsViewModelFactory
+    @Inject lateinit var factory: Factory<SearchResultsViewModel>
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? =

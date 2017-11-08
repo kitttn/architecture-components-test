@@ -15,19 +15,16 @@ import dagger.Provides
 @Module @LifecycleAware
 class LifecycleAwareModule {
     @Provides @LifecycleAware
-    fun provideSearchResults(countryLoader: CountryLoader) = SearchResultsViewModel(countryLoader)
-
-    @Provides @LifecycleAware
-    fun provideSearchFactory(model: SearchResultsViewModel) =
-            SearchResultsViewModelFactory(model)
+    fun provideSearchViewModelFactory(countryLoader: CountryLoader) =
+            Factory(SearchResultsViewModel(countryLoader))
 }
 
-class SearchResultsViewModelFactory(private val model: SearchResultsViewModel) : ViewModelProvider.Factory {
+class Factory<C : Any>(private val model: C) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        @Suppress("UNCHECKED_CAST")
-        if (modelClass.isAssignableFrom(SearchResultsViewModel::class.java))
+        if (modelClass.isAssignableFrom(model::class.java))
             return model as T
 
-        throw Error("Can't create SearchResultsViewModel, type: ${modelClass.canonicalName}")
+        throw Error("Can't create AllViewModel, type: ${modelClass.canonicalName}")
     }
 }
