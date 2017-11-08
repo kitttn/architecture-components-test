@@ -7,4 +7,4 @@ import javax.inject.Scope
  */
 
 @Scope @Retention
-annotation class PerViewModel
+annotation class LifecycleAware

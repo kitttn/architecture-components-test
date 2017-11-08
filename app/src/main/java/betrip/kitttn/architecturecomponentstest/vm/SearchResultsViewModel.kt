@@ -27,7 +27,7 @@ data class SearchResultError(val errorReason: String, val errorCode: Int) : Sear
     }
 }
 
-class SearchResultsViewModel @Inject constructor(private val countryLoader: CountryLoader) : ViewModel() {
+class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewModel() {
     val searchResults = MutableLiveData<SearchResultState>()
     private val composite = CompositeDisposable()
 
