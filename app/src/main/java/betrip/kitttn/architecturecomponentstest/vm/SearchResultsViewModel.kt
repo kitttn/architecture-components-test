@@ -33,14 +33,14 @@ class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewMod
 
     fun startSearch(query: String) {
         // TODO: add DB loading via Repository, now just mock some data
-        searchResults.postValue(SearchResultLoading())
+        searchResults.value = SearchResultLoading()
         composite += countryLoader.getCountryNames(query)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    searchResults.postValue(SearchResultSuccess(it))
+                    searchResults.value = SearchResultSuccess(it)
                 }, {
-                    searchResults.postValue(SearchResultError(it.localizedMessage, SearchResultError.ERROR_OTHER))
+                    searchResults.value  = SearchResultError(it.localizedMessage, SearchResultError.ERROR_OTHER)
                 })
     }
 
