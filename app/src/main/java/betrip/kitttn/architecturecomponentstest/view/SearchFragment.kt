@@ -4,6 +4,8 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +22,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_search.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -44,13 +47,19 @@ class SearchFragment : Fragment() {
 
         (activity as BaseActivity).lifecycleComponent.inject(this)
 
-        val enteredTextVM = ViewModelProviders.of(this).get(EnteredTextViewModel::class.java)
+        val enteredTextVM = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
         val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
         Log.i(TAG, "onViewCreated: Factory: $factory")
         Log.i(TAG, "onViewCreated: VM instance: $searchResultsVM")
         Log.i(TAG, "onViewCreated: Fragment $this is created!")
 
+        composite += enteredTextVM.getEnteredText()
+                .observeOn(AndroidSchedulers.mainThread())
+                .debounce(300, TimeUnit.MILLISECONDS)
+                .subscribe({ Log.i(TAG, "onViewCreated: Loading query: $it") }, Throwable::printStackTrace)
+
         searchBtn.setOnClickListener { searchResultsVM.startSearch(searchText.text.toString()) }
+        searchText.addTextChangedListener(TextChangedListener(enteredTextVM::textChanged))
 
         searchResultsRV.layoutManager = LinearLayoutManager(activity)
         val adapter = CountryNameFlagAdapter(mutableListOf())
@@ -82,5 +91,15 @@ class SearchFragment : Fragment() {
                 }
             }
         }
+    }
+}
+
+class TextChangedListener(private val textChanged: (String) -> Unit) : TextWatcher {
+    override fun afterTextChanged(p0: Editable?) {}
+
+    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+        textChanged(p0?.toString() ?: "")
     }
 }
