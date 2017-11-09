@@ -41,8 +41,4 @@ dependencies {
 
     implementation group: 'com.google.dagger', name: 'dagger', version: '2.13'
     kapt group: 'com.google.dagger', name: 'dagger-compiler', version: '2.13'
-
-    implementation('com.miguelcatalan:materialsearchview:1.4.0') {
-        exclude group: 'com.android.support'
-    }
 }

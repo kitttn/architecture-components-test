@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -82,7 +80,7 @@ class SearchFragment : Fragment(), BackPressHandable {
         composite += textVm.getLastQuery()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    Log.i(TAG, "onViewCreated: Last text: $it")
+                    Log.i(TAG, "onCreateOptionsMenu: Last text: $it")
                     if (it.isNotEmpty()) {
                         menuItem.expandActionView()
                         searchView.setQuery(it, false)
@@ -90,27 +88,10 @@ class SearchFragment : Fragment(), BackPressHandable {
 
                 }, Throwable::printStackTrace)
 
-        menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
-                Log.i(TAG, "onMenuItemActionExpand: Expanding...")
-                toolbar.setBackgroundResource(R.color.white)
-                return true
-            }
+        menuItem.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
+                { toolbar.setBackgroundResource(R.color.white) }))
 
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
-                toolbar.setBackgroundResource(R.color.colorPrimary)
-                return true
-            }
-        })
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?) = true
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                textVm.textChanged(newText ?: "")
-                return true
-            }
-        })
+        searchView.setOnQueryTextListener(QueryListener(textVm::textChanged))
     }
 
     override fun onBackPressProcessed(): Boolean {
@@ -140,12 +121,23 @@ class SearchFragment : Fragment(), BackPressHandable {
     }
 }
 
-class TextChangedListener(private val textChanged: (String) -> Unit) : TextWatcher {
-    override fun afterTextChanged(p0: Editable?) {}
+class CollapseExpandListener(private val collapse: () -> Unit, private val expand: () -> Unit) : MenuItem.OnActionExpandListener {
+    override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+        expand()
+        return true
+    }
 
-    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+    override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+        collapse()
+        return true
+    }
+}
 
-    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-        textChanged(p0?.toString() ?: "")
+class QueryListener(private val queryChanged: (String) -> Unit) : SearchView.OnQueryTextListener {
+    override fun onQueryTextSubmit(query: String?) = false
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        queryChanged(newText ?: "")
+        return true
     }
 }

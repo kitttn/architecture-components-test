@@ -13,11 +13,6 @@
         android:layout_height="?attr/actionBarSize"
         app:title="@string/app_name"/>
 
-    <com.miguelcatalan.materialsearchview.MaterialSearchView
-        android:id="@+id/searchViewMaterial"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
