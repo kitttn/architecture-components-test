@@ -14,11 +14,8 @@ import betrip.kitttn.architecturecomponentstest.model.ViewCountryName
  */
 
 data class CountryNameFlagVH(private val view: View) : RecyclerView.ViewHolder(view) {
-    private val nameTxt by lazy { view.findViewById<TextView>(R.id.countryNameTxt) }
-    private val flag by lazy { view.findViewById<ImageView>(R.id.countryNameFlag) }
-    fun bind(country: ViewCountryName) {
-        nameTxt.text = country.name
-    }
+    val nameTxt by lazy { view.findViewById<TextView>(R.id.countryNameTxt) }
+    val flag by lazy { view.findViewById<ImageView>(R.id.countryNameFlag) }
 }
 
 class CountryNameFlagAdapter(val countries: MutableList<ViewCountryName>) :
@@ -26,7 +23,8 @@ class CountryNameFlagAdapter(val countries: MutableList<ViewCountryName>) :
 
     override fun onBindViewHolder(holder: CountryNameFlagVH?, position: Int) {
         val country = countries[position]
-        holder?.bind(country)
+        holder?.nameTxt?.text = country.name
+        holder?.flag?.setImageResource(country.flagId)
     }
 
     override fun getItemCount() = countries.size

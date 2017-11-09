@@ -1,12 +1,15 @@
 package betrip.kitttn.architecturecomponentstest.view
 
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
+import android.support.annotation.DrawableRes
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
 import android.util.Log
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
@@ -72,7 +75,7 @@ class SearchFragment : Fragment(), BackPressHandable {
 
         composite += textVm.getEnteredText()
                 .observeOn(Schedulers.io())
-                .debounce(400, TimeUnit.MILLISECONDS, Schedulers.io())
+                .debounce(200, TimeUnit.MILLISECONDS, Schedulers.io())
                 .subscribe(searchResultsVM::startSearch, Throwable::printStackTrace)
     }
 
@@ -128,12 +131,20 @@ class SearchFragment : Fragment(), BackPressHandable {
                     countries.clear()
                     countries.addAll(response.data.map {
                         val mergedName = getString(R.string.country_name_template, it.name, it.nativeName)
-                        ViewCountryName(mergedName, it.flag)
+                        ViewCountryName(mergedName, getResourceId(it.isoCode.toLowerCase()))
                     })
                     notifyDataSetChanged()
                 }
             }
         }
+    }
+
+    private @DrawableRes fun getResourceId(isoCode: String): Int {
+        val id = resources.getIdentifier(isoCode, "drawable", activity.packageName)
+        if (id == 0) {
+            Log.w(TAG, "getResourceId: Resource for $isoCode not found!")
+        }
+        return id
     }
 }
 

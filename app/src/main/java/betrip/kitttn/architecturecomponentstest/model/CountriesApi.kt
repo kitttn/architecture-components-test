@@ -9,6 +9,6 @@ import retrofit2.http.Path
  */
 
 interface CountriesApi {
-    @GET("name/{partName}?fields=name;nativeName;flag")
+    @GET("name/{partName}?fields=name;nativeName;alpha2Code")
     fun getCountriesList(@Path("partName") countryPartialName: String): Single<List<CountryName>>
 }
