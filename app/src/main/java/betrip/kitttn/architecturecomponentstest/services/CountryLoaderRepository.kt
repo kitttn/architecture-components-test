@@ -54,8 +54,7 @@ class RestCountryLoaderRepository(private val api: CountriesApi) : CountryLoader
 
     override fun reset() {
         previousQuery = ""
-        if (previousResults.isEmpty())
-            countryNamesSubject.onNext(emptyList())
+        countryNamesSubject.onNext(emptyList())
         previousResults = emptyList()
     }
 }
