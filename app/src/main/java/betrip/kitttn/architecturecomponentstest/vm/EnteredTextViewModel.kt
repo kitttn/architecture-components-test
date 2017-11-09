@@ -2,6 +2,7 @@ package betrip.kitttn.architecturecomponentstest.vm
 
 import android.arch.lifecycle.ViewModel
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.subjects.BehaviorSubject
 
 /**
@@ -12,6 +13,12 @@ class EnteredTextViewModel : ViewModel() {
     private val enteredText = BehaviorSubject.create<String>()
 
     fun getEnteredText(): Observable<String> = enteredText
+
+    fun getLastQuery(): Single<String> {
+        return Single.just("")
+                .flatMapObservable { enteredText }
+                .first("")
+    }
 
     fun textChanged(enteredText: String) = this.enteredText.onNext(enteredText)
 }

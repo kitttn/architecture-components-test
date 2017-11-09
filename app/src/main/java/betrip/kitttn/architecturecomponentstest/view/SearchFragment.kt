@@ -21,7 +21,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_search.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -35,12 +34,16 @@ class SearchFragment : Fragment(), BackPressHandable {
     }
 
     @Inject lateinit var factory: Factory<SearchResultsViewModel>
+    private var enteredTextVM: EnteredTextViewModel? = null
     private val composite = CompositeDisposable()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater?.inflate(R.layout.fragment_search, container, false)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        return view
+    }
+
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater?.inflate(R.layout.fragment_search, container, false)
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -51,16 +54,11 @@ class SearchFragment : Fragment(), BackPressHandable {
             setSupportActionBar(toolbar)
         }
 
-        val enteredTextVM = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
+        enteredTextVM = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
         val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
         Log.i(TAG, "onViewCreated: Factory: $factory")
         Log.i(TAG, "onViewCreated: VM instance: $searchResultsVM")
         Log.i(TAG, "onViewCreated: Fragment $this is created!")
-
-        composite += enteredTextVM.getEnteredText()
-                .observeOn(AndroidSchedulers.mainThread())
-                .debounce(300, TimeUnit.MILLISECONDS)
-                .subscribe({ Log.i(TAG, "onViewCreated: Loading query: $it") }, Throwable::printStackTrace)
 
         searchResultsRV.layoutManager = LinearLayoutManager(activity)
         val adapter = CountryNameFlagAdapter(mutableListOf())
@@ -80,6 +78,18 @@ class SearchFragment : Fragment(), BackPressHandable {
 
         searchView.maxWidth = Int.MAX_VALUE
 
+        val textVm = enteredTextVM ?: return
+        composite += textVm.getLastQuery()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    Log.i(TAG, "onViewCreated: Last text: $it")
+                    if (it.isNotEmpty()) {
+                        menuItem.expandActionView()
+                        searchView.setQuery(it, false)
+                    }
+
+                }, Throwable::printStackTrace)
+
         menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
                 Log.i(TAG, "onMenuItemActionExpand: Expanding...")
@@ -89,6 +99,15 @@ class SearchFragment : Fragment(), BackPressHandable {
 
             override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
                 toolbar.setBackgroundResource(R.color.colorPrimary)
+                return true
+            }
+        })
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = true
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                textVm.textChanged(newText ?: "")
                 return true
             }
         })

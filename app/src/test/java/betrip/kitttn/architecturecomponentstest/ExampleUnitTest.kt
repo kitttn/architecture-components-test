@@ -1,8 +1,7 @@
 package betrip.kitttn.architecturecomponentstest
 
+import betrip.kitttn.architecturecomponentstest.vm.EnteredTextViewModel
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -11,7 +10,23 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun lastQueryProducesRealLastResult() {
+        val enteredTextViewModel = EnteredTextViewModel()
+        enteredTextViewModel.textChanged("Hello")
+
+        enteredTextViewModel.getEnteredText()
+                .subscribe({ println(it) }, Throwable::printStackTrace)
+
+        enteredTextViewModel.getLastQuery()
+                .test()
+                .assertValues("Hello")
+                .assertComplete()
+
+        enteredTextViewModel.textChanged("World!")
+
+        enteredTextViewModel.getLastQuery()
+                .test()
+                .assertValues("World!")
+                .assertComplete()
     }
 }
