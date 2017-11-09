@@ -1,9 +1,15 @@
 package betrip.kitttn.architecturecomponentstest.di.modules
 
+import betrip.kitttn.architecturecomponentstest.model.CountriesApi
 import betrip.kitttn.architecturecomponentstest.services.CountryLoader
-import betrip.kitttn.architecturecomponentstest.services.TestCountryLoaderRepository
+import betrip.kitttn.architecturecomponentstest.services.RestCountryLoaderRepository
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 /**
@@ -11,10 +17,24 @@ import javax.inject.Singleton
  */
 
 @Module
-class AppModule {
+class AppModule(private val serverUrl: String = "https://restcountries.eu/rest/v2/") {
     @Provides @Singleton
-    fun provideSmth() = "Smth"
+    fun providesApi(): CountriesApi {
+        val interceptor = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        val okHttp = OkHttpClient.Builder()
+                .addInterceptor(interceptor)
+                .build()
+
+        val retrofit = Retrofit.Builder()
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(serverUrl)
+                .client(okHttp)
+                .build()
+
+        return retrofit.create(CountriesApi::class.java)
+    }
 
     @Provides @Singleton
-    fun provideCountryLoader(): CountryLoader = TestCountryLoaderRepository()
+    fun provideCountryLoader(api: CountriesApi): CountryLoader = RestCountryLoaderRepository(api)
 }

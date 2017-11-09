@@ -19,6 +19,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_search.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -66,6 +67,13 @@ class SearchFragment : Fragment(), BackPressHandable {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({ parseSearchResultResponse(it, adapter) }, Throwable::printStackTrace)
+
+        val textVm = enteredTextVM ?: return
+
+        composite += textVm.getEnteredText()
+                .observeOn(Schedulers.io())
+                .debounce(400, TimeUnit.MILLISECONDS, Schedulers.io())
+                .subscribe(searchResultsVM::startSearch, Throwable::printStackTrace)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
