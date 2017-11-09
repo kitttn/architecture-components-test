@@ -4,12 +4,11 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.SearchView
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
@@ -30,7 +29,7 @@ import javax.inject.Inject
  */
 
 @LifecycleAware
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), BackPressHandable {
     companion object {
         private val TAG = "SearchFragment"
     }
@@ -38,14 +37,19 @@ class SearchFragment : Fragment() {
     @Inject lateinit var factory: Factory<SearchResultsViewModel>
     private val composite = CompositeDisposable()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? =
-            inflater?.inflate(R.layout.fragment_search, container, false)
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater?.inflate(R.layout.fragment_search, container, false)
+        setHasOptionsMenu(true)
+        return view
+    }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (activity as BaseActivity).lifecycleComponent.inject(this)
+        with(activity as BaseActivity) {
+            lifecycleComponent.inject(this@SearchFragment)
+            setSupportActionBar(toolbar)
+        }
 
         val enteredTextVM = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
         val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
@@ -58,9 +62,6 @@ class SearchFragment : Fragment() {
                 .debounce(300, TimeUnit.MILLISECONDS)
                 .subscribe({ Log.i(TAG, "onViewCreated: Loading query: $it") }, Throwable::printStackTrace)
 
-        searchBtn.setOnClickListener { searchResultsVM.startSearch(searchText.text.toString()) }
-        searchText.addTextChangedListener(TextChangedListener(enteredTextVM::textChanged))
-
         searchResultsRV.layoutManager = LinearLayoutManager(activity)
         val adapter = CountryNameFlagAdapter(mutableListOf())
         searchResultsRV.adapter = adapter
@@ -69,6 +70,32 @@ class SearchFragment : Fragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({ parseSearchResultResponse(it, adapter) }, Throwable::printStackTrace)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.search_menu, menu)
+
+        val menuItem = menu?.findItem(R.id.search) ?: return
+        val searchView = menuItem.actionView as? SearchView ?: return
+
+        searchView.maxWidth = Int.MAX_VALUE
+
+        menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+                Log.i(TAG, "onMenuItemActionExpand: Expanding...")
+                toolbar.setBackgroundResource(R.color.white)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+                toolbar.setBackgroundResource(R.color.colorPrimary)
+                return true
+            }
+        })
+    }
+
+    override fun onBackPressProcessed(): Boolean {
+        return false
     }
 
     override fun onStop() {
