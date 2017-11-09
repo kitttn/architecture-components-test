@@ -1,14 +1,15 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
-import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import betrip.kitttn.architecturecomponentstest.model.CountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.services.CountryLoader
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 
 /**
  * @author kitttn
@@ -28,21 +29,24 @@ data class SearchResultError(val errorReason: String, val errorCode: Int) : Sear
 }
 
 class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewModel() {
-    val searchResults = MutableLiveData<SearchResultState>()
+    private val searchResults = BehaviorSubject.create<SearchResultState>()
     private val composite = CompositeDisposable()
 
     fun startSearch(query: String) {
-        // TODO: add DB loading via Repository, now just mock some data
-        searchResults.value = SearchResultLoading()
+        searchResults.onNext(SearchResultLoading())
         composite += countryLoader.getCountryNames(query)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    searchResults.value = SearchResultSuccess(it)
+                    searchResults.onNext(SearchResultLoading(false))
+                    searchResults.onNext(SearchResultSuccess(it))
                 }, {
-                    searchResults.value  = SearchResultError(it.localizedMessage, SearchResultError.ERROR_OTHER)
+                    searchResults.onNext(SearchResultLoading(false))
+                    searchResults.onNext(SearchResultError("Some reason", SearchResultError.ERROR_OTHER))
                 })
     }
+
+    fun getSearchResults(): Observable<SearchResultState> = searchResults
 
     override fun onCleared() {
         composite.clear()
