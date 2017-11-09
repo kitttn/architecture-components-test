@@ -1,5 +1,6 @@
 package betrip.kitttn.architecturecomponentstest.view
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -15,14 +16,10 @@ import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory
-import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.view.adapters.CountryNameFlagAdapter
 import betrip.kitttn.architecturecomponentstest.vm.*
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_search.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -53,10 +50,9 @@ class SearchFragment : Fragment() {
         Log.i(TAG, "onViewCreated: VM instance: $searchResultsVM")
         Log.i(TAG, "onViewCreated: Fragment $this is created!")
 
-        composite += enteredTextVM.getEnteredText()
-                .observeOn(AndroidSchedulers.mainThread())
-                .debounce(300, TimeUnit.MILLISECONDS)
-                .subscribe({ Log.i(TAG, "onViewCreated: Loading query: $it") }, Throwable::printStackTrace)
+        enteredTextVM.enteredText.observe(this, Observer {
+            Log.i(TAG, "onViewCreated: Querying $it...")
+        })
 
         searchBtn.setOnClickListener { searchResultsVM.startSearch(searchText.text.toString()) }
         searchText.addTextChangedListener(TextChangedListener(enteredTextVM::textChanged))
@@ -65,10 +61,7 @@ class SearchFragment : Fragment() {
         val adapter = CountryNameFlagAdapter(mutableListOf())
         searchResultsRV.adapter = adapter
 
-        composite += searchResultsVM.getSearchResults()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ parseSearchResultResponse(it, adapter) }, Throwable::printStackTrace)
+        searchResultsVM.searchResults.observe(this, Observer { parseSearchResultResponse(it, adapter) })
     }
 
     override fun onStop() {
@@ -77,8 +70,11 @@ class SearchFragment : Fragment() {
         Log.i(TAG, "onStop: Fragment $this is stopped!")
     }
 
-    private fun parseSearchResultResponse(response: SearchResultState, adapter: CountryNameFlagAdapter) {
+    private fun parseSearchResultResponse(response: SearchResultState?, adapter: CountryNameFlagAdapter) {
         Log.i(TAG, "parseSearchResultResponse: Got new VM state: $response")
+        if (response == null)
+            return
+
         when (response) {
             is SearchResultLoading -> refreshLayout.isRefreshing = response.loading
             is SearchResultError -> Toast.makeText(activity, "${response.errorCode}; Reason: ${response.errorReason}", Toast.LENGTH_LONG).show()

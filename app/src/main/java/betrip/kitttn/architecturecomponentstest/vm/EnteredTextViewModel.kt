@@ -1,17 +1,16 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
+import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
-import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
 
 /**
  * @author kitttn
  */
 
 class EnteredTextViewModel : ViewModel() {
-    private val enteredText = BehaviorSubject.create<String>()
+    val enteredText = MutableLiveData<String>()
 
-    fun getEnteredText(): Observable<String> = enteredText
-
-    fun textChanged(enteredText: String) = this.enteredText.onNext(enteredText)
+    fun textChanged(enteredText: String) {
+        this.enteredText.value = enteredText
+    }
 }

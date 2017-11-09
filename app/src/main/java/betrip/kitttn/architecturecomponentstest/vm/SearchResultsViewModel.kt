@@ -1,5 +1,6 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
+import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import betrip.kitttn.architecturecomponentstest.model.CountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
@@ -9,7 +10,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 
 /**
  * @author kitttn
@@ -29,24 +29,22 @@ data class SearchResultError(val errorReason: String, val errorCode: Int) : Sear
 }
 
 class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewModel() {
-    private val searchResults = BehaviorSubject.create<SearchResultState>()
+    val searchResults = MutableLiveData<SearchResultState>()
     private val composite = CompositeDisposable()
 
     fun startSearch(query: String) {
-        searchResults.onNext(SearchResultLoading())
+        searchResults.value = SearchResultLoading()
         composite += countryLoader.getCountryNames(query)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    searchResults.onNext(SearchResultLoading(false))
-                    searchResults.onNext(SearchResultSuccess(it))
+                    searchResults.value = (SearchResultLoading(false))
+                    searchResults.value = (SearchResultSuccess(it))
                 }, {
-                    searchResults.onNext(SearchResultLoading(false))
-                    searchResults.onNext(SearchResultError("Some reason", SearchResultError.ERROR_OTHER))
+                    searchResults.value = (SearchResultLoading(false))
+                    searchResults.value = (SearchResultError("Some reason", SearchResultError.ERROR_OTHER))
                 })
     }
-
-    fun getSearchResults(): Observable<SearchResultState> = searchResults
 
     override fun onCleared() {
         composite.clear()
