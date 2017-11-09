@@ -116,9 +116,14 @@ class SearchFragment : Fragment(), BackPressHandable {
         Log.i(TAG, "parseSearchResultResponse: Got new VM state: $response")
         when (response) {
             is SearchResultLoading -> refreshLayout.isRefreshing = response.loading
-            is SearchResultError -> Toast.makeText(activity, "${response.errorCode}; Reason: ${response.errorReason}", Toast.LENGTH_LONG).show()
+            is SearchResultError -> {
+                /*Toast.makeText(activity, "${response.errorCode}; Reason: ${response.errorReason}", Toast.LENGTH_LONG)
+                        .show()*/
+                adapter.countries.clear()
+                adapter.notifyDataSetChanged()
+            }
             is SearchResultSuccess -> {
-                Toast.makeText(activity, "Complete!", Toast.LENGTH_SHORT).show()
+                /*Toast.makeText(activity, "Complete!", Toast.LENGTH_SHORT).show()*/
                 with(adapter) {
                     countries.clear()
                     countries.addAll(response.data.map { it.name })

@@ -32,6 +32,11 @@ class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewMod
     private val composite = CompositeDisposable()
 
     fun startSearch(query: String) {
+        if (query.isEmpty()) {
+            countryLoader.reset()
+            return
+        }
+
         searchResults.onNext(SearchResultLoading())
         composite += countryLoader.getCountryNames(query)
                 .subscribeOn(Schedulers.io())

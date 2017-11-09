@@ -13,9 +13,13 @@ import java.util.concurrent.TimeUnit
 
 interface CountryLoader {
     fun getCountryNames(query: String): Single<List<CountryName>>
+    fun reset()
 }
 
 class TestCountryLoaderRepository : CountryLoader {
+    override fun reset() {
+    }
+
     override fun getCountryNames(query: String): Single<List<CountryName>> {
         return Single
                 .just(listOf("ABC", "CDE", "DEF", "EFG").map { CountryName(it) })
@@ -25,6 +29,7 @@ class TestCountryLoaderRepository : CountryLoader {
 
 class RestCountryLoaderRepository(private val api: CountriesApi) : CountryLoader {
     private var previousQuery = ""
+    private var previousResults = emptyList<CountryName>()
     private var countryNamesSubject = BehaviorSubject.create<List<CountryName>>()
 
     companion object {
@@ -33,19 +38,24 @@ class RestCountryLoaderRepository(private val api: CountriesApi) : CountryLoader
 
     override fun getCountryNames(query: String): Single<List<CountryName>> {
         Log.i(TAG, "getCountryNames: Querying $query...")
-        if (query.isEmpty()) {
-            previousQuery = query
-            return Single.just(emptyList())
-        }
-
-        if (query.length < previousQuery.length || previousQuery.isEmpty()) {
-            previousQuery = query
-            return api.getCountriesList(query)
-                    .doAfterSuccess { countryNamesSubject.onNext(it) }
-        }
 
         return countryNamesSubject
+                .flatMapSingle {
+                    val shouldDownload = query.length < previousQuery.length || previousQuery.isEmpty()
+                    if (shouldDownload) {
+                        previousQuery = query
+                        api.getCountriesList(query)
+                    } else Single.just(previousResults)
+                }
+                .doOnNext { previousResults = it }
                 .map { it.filter { it.name.contains(query, true) } }
                 .first(emptyList())
+    }
+
+    override fun reset() {
+        previousQuery = ""
+        if (previousResults.isEmpty())
+            countryNamesSubject.onNext(emptyList())
+        previousResults = emptyList()
     }
 }
