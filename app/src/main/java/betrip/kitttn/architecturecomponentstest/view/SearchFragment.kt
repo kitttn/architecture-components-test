@@ -7,11 +7,11 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory
+import betrip.kitttn.architecturecomponentstest.model.ViewCountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.view.adapters.CountryNameFlagAdapter
 import betrip.kitttn.architecturecomponentstest.vm.*
@@ -126,7 +126,10 @@ class SearchFragment : Fragment(), BackPressHandable {
                 /*Toast.makeText(activity, "Complete!", Toast.LENGTH_SHORT).show()*/
                 with(adapter) {
                     countries.clear()
-                    countries.addAll(response.data.map { it.name })
+                    countries.addAll(response.data.map {
+                        val mergedName = getString(R.string.country_name_template, it.name, it.nativeName)
+                        ViewCountryName(mergedName, it.flag)
+                    })
                     notifyDataSetChanged()
                 }
             }
