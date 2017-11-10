@@ -2,7 +2,6 @@ package betrip.kitttn.architecturecomponentstest.view
 
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.annotation.DrawableRes
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
@@ -12,6 +11,7 @@ import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory
+import betrip.kitttn.architecturecomponentstest.getFlagResIdByCode
 import betrip.kitttn.architecturecomponentstest.model.ViewCountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.view.adapters.CountryNameFlagAdapter
@@ -87,6 +87,10 @@ class SearchFragment : Fragment() {
         val textVm = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
         val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
 
+        refreshLayout.setOnRefreshListener {
+            searchView?.setQuery("", false)
+        }
+
         menuItem?.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
                 { toolbar.setBackgroundResource(R.color.white) }))
 
@@ -156,20 +160,12 @@ class SearchFragment : Fragment() {
                     countries.clear()
                     countries.addAll(response.data.map {
                         val mergedName = getString(R.string.country_name_template, it.name, it.nativeName)
-                        ViewCountryName(mergedName, it.name, getResourceId(it.isoCode.toLowerCase()))
+                        ViewCountryName(mergedName, it.name, activity.getFlagResIdByCode(it.isoCode))
                     })
                     notifyDataSetChanged()
                 }
             }
         }
-    }
-
-    private @DrawableRes fun getResourceId(isoCode: String): Int {
-        val id = resources.getIdentifier(isoCode, "drawable", activity.packageName)
-        if (id == 0) {
-            Log.w(TAG, "getResourceId: Resource for $isoCode not found!")
-        }
-        return id
     }
 }
 

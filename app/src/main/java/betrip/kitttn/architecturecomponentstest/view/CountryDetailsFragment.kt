@@ -1,6 +1,8 @@
 package betrip.kitttn.architecturecomponentstest.view
 
 import android.arch.lifecycle.ViewModelProviders
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -11,9 +13,14 @@ import android.widget.Toast
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory
+import betrip.kitttn.architecturecomponentstest.getFlagResIdByCode
 import betrip.kitttn.architecturecomponentstest.model.CountryDetails
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.vm.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_country_details.*
@@ -96,6 +103,25 @@ class CountryDetailsFragment : Fragment() {
         countryDetailsPopulation.text = getString(R.string.population_1_d, countryDetails.population)
         countryDetailsRegion.text = getString(R.string._1_s_2_s, countryDetails.region, countryDetails.subRegion)
         countryDetailsTranslation.text = getString(R.string.in_german_1_s, countryDetails.translations.getOrDefault("de", ""))
+
+        mapView?.getMapAsync { map ->
+            val latLng = LatLng(countryDetails.location[0], countryDetails.location[1])
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 5f))
+
+            val flagCode = activity.getFlagResIdByCode(countryDetails.isoCode)
+            if (flagCode != 0) {
+                val bitmap = BitmapFactory.decodeResource(resources, flagCode)
+                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, (bitmap.width * 0.3).toInt(),
+                        (bitmap.height * 0.3).toInt(), true)
+
+                map.addMarker(MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromBitmap(scaledBitmap))
+                        .position(latLng))
+
+                scaledBitmap.recycle()
+                bitmap.recycle()
+            }
+        }
     }
 
     override fun onDestroy() {
