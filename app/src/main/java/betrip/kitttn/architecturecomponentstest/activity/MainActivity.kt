@@ -13,8 +13,9 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, SearchFragment())
-                .commit()
+        if (supportFragmentManager.findFragmentByTag("search") == null)
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, SearchFragment(), "search")
+                    .commit()
     }
 }
