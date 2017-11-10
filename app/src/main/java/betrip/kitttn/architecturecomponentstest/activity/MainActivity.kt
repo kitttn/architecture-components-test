@@ -14,7 +14,7 @@ class MainActivity : BaseActivity() {
         setContentView(R.layout.activity_main)
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, CountryDetailsFragment())
+                .replace(R.id.fragmentContainer, CountryDetailsFragment.newInstance("Colombia"))
                 .commit()
     }
 }

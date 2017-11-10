@@ -24,10 +24,10 @@ interface RoomCountryDao {
     @Query("select * from RoomCountryLanguage where countryName is (:countryName)")
     fun getCountryLanguages(countryName: String): List<RoomCountryLanguage>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addCountry(country: RoomCountry)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addCountryLanguages(language: Array<RoomCountryLanguage>)
 }
 

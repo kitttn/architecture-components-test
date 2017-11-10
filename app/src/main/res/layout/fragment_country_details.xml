@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/mapView"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="16dp">
 
         <TextView
             android:id="@+id/countryDetailsName"
