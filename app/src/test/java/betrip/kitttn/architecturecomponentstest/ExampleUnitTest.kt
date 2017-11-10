@@ -1,8 +1,9 @@
 package betrip.kitttn.architecturecomponentstest
 
 import betrip.kitttn.architecturecomponentstest.model.CountriesApi
+import betrip.kitttn.architecturecomponentstest.model.CountryDetails
 import betrip.kitttn.architecturecomponentstest.model.CountryName
-import betrip.kitttn.architecturecomponentstest.services.RestCountryLoaderRepository
+import betrip.kitttn.architecturecomponentstest.services.RestCountryNamesLoaderRepository
 import betrip.kitttn.architecturecomponentstest.vm.EnteredTextViewModel
 import io.reactivex.Single
 import org.junit.Test
@@ -37,6 +38,10 @@ class ExampleUnitTest {
     @Test
     fun countryLoaderRepositoryEmitsToProcessor() {
         val testApi = object : CountriesApi {
+            override fun getCountryByFullName(countryFullName: String): Single<List<CountryDetails>> {
+                return Single.just(emptyList())
+            }
+
             override fun getCountriesList(countryPartialName: String): Single<List<CountryName>> {
                 return Single.just(listOf("AAA", "BBB", "CCC", "DDD").map { CountryName(it) })
             }
@@ -46,7 +51,7 @@ class ExampleUnitTest {
             }
         }
 
-        val countryLoaderRepository = RestCountryLoaderRepository(testApi)
+        val countryLoaderRepository = RestCountryNamesLoaderRepository(testApi)
         countryLoaderRepository.countries
                 .subscribe({ println("Result: $it") }, Throwable::printStackTrace)
 

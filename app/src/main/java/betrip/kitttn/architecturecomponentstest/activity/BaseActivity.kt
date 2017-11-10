@@ -17,14 +17,4 @@ open class BaseActivity : AppCompatActivity() {
                 .lifecycleAwareModule(LifecycleAwareModule())
                 .build()
     }
-
-    override fun onBackPressed() {
-        val somebodyReacted = supportFragmentManager.fragments
-                .filter { it is BackPressHandable }
-                .map { (it as BackPressHandable).onBackPressProcessed() }
-                .reduce { previous, next -> previous or next }
-
-        if (!somebodyReacted)
-            super.onBackPressed()
-    }
 }

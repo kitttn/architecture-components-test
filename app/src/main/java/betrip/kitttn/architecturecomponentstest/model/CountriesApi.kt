@@ -14,4 +14,7 @@ interface CountriesApi {
 
     @GET("all?fields=name;nativeName;alpha2Code")
     fun getAllCountries(): Single<List<CountryName>>
+
+    @GET("name/{fullName}?fullText=true")
+    fun getCountryByFullName(@Path("fullName") countryFullName: String): Single<List<CountryDetails>>
 }

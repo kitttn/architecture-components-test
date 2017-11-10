@@ -1,7 +1,9 @@
 package betrip.kitttn.architecturecomponentstest.app
 
 import android.app.Application
+import betrip.kitttn.architecturecomponentstest.di.components.AppComponent
 import betrip.kitttn.architecturecomponentstest.di.components.DaggerAppComponent
+import betrip.kitttn.architecturecomponentstest.di.modules.AppModule
 
 /**
  * @author kitttn
@@ -9,8 +11,13 @@ import betrip.kitttn.architecturecomponentstest.di.components.DaggerAppComponent
 
 class App : Application() {
     companion object {
-        val graph by lazy {
-            DaggerAppComponent.create()
-        }
+        lateinit var graph: AppComponent
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        graph = DaggerAppComponent.builder()
+                .appModule(AppModule(this))
+                .build()
     }
 }

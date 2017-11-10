@@ -3,8 +3,10 @@ package betrip.kitttn.architecturecomponentstest.di.modules
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
-import betrip.kitttn.architecturecomponentstest.services.CountryLoader
+import betrip.kitttn.architecturecomponentstest.services.CountryDetailsLoader
+import betrip.kitttn.architecturecomponentstest.services.CountryNamesLoader
 import betrip.kitttn.architecturecomponentstest.vm.SearchResultsViewModel
+import betrip.kitttn.architecturecomponentstest.vm.SelectedCountryViewModel
 import dagger.Module
 import dagger.Provides
 
@@ -15,8 +17,12 @@ import dagger.Provides
 @Module @LifecycleAware
 class LifecycleAwareModule {
     @Provides @LifecycleAware
-    fun provideSearchViewModelFactory(countryLoader: CountryLoader) =
-            Factory(SearchResultsViewModel(countryLoader))
+    fun provideSearchViewModelFactory(countryNamesLoader: CountryNamesLoader) =
+            Factory(SearchResultsViewModel(countryNamesLoader))
+
+    @Provides @LifecycleAware
+    fun provideSelectedCountryViewModel(countryDetailsLoader: CountryDetailsLoader) =
+            Factory(SelectedCountryViewModel(countryDetailsLoader))
 }
 
 class Factory<C : Any>(private val model: C) : ViewModelProvider.Factory {

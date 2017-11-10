@@ -5,14 +5,13 @@ import betrip.kitttn.architecturecomponentstest.model.CountryName
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
-import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.processors.PublishProcessor
 
 /**
  * @author kitttn
  */
 
-interface CountryLoader {
+interface CountryNamesLoader {
     /**
      * Subscribe on this Flowable to get country lists;
      */
@@ -22,13 +21,13 @@ interface CountryLoader {
     fun fetchAllCountries(): Completable
 }
 
-class RestCountryLoaderRepository(private val api: CountriesApi) : CountryLoader {
+class RestCountryNamesLoaderRepository(private val api: CountriesApi) : CountryNamesLoader {
     private val loadedCountries = mutableListOf<CountryName>()
     private val countriesProcessor = PublishProcessor
             .create<List<CountryName>>()
 
     companion object {
-        private val TAG = RestCountryLoaderRepository::class.java.simpleName
+        private val TAG = RestCountryNamesLoaderRepository::class.java.simpleName
     }
 
     override val countries: Flowable<List<CountryName>>

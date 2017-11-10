@@ -3,7 +3,7 @@ package betrip.kitttn.architecturecomponentstest.vm
 import android.arch.lifecycle.ViewModel
 import betrip.kitttn.architecturecomponentstest.model.CountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
-import betrip.kitttn.architecturecomponentstest.services.CountryLoader
+import betrip.kitttn.architecturecomponentstest.services.CountryNamesLoader
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -30,14 +30,14 @@ data class SearchResultError(val errorReason: String, val errorCode: Int) : Sear
     }
 }
 
-class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewModel() {
+class SearchResultsViewModel(private val countryNamesLoader: CountryNamesLoader) : ViewModel() {
     private val searchResults = BehaviorSubject.create<SearchResultState>()
     private val composite = CompositeDisposable()
 
     init {
         searchResults.onNext(InitialSearchResultState())
 
-        composite += countryLoader.countries
+        composite += countryNamesLoader.countries
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ searchResults.onNext(SearchResultSuccess(it)) },
                         { searchResults.onNext(SearchResultError(it.localizedMessage, SearchResultError.ERROR_OTHER)) })
@@ -45,11 +45,11 @@ class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewMod
 
     fun startSearch(query: String) {
         if (query.isEmpty()) {
-            fetchData { countryLoader.fetchAllCountries() }
+            fetchData { countryNamesLoader.fetchAllCountries() }
             return
         }
 
-        fetchData { countryLoader.fetchCountries(query) }
+        fetchData { countryNamesLoader.fetchCountries(query) }
     }
 
     private fun fetchData(completable: () -> Completable) {
