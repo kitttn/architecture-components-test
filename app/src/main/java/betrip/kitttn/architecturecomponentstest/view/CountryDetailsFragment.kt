@@ -53,6 +53,28 @@ class CountryDetailsFragment : Fragment() {
                 .subscribe(this::parseState, { parseState(CountryLoadErrorState(it.localizedMessage)) })
 
         selectedCountry.fetchCountryDetails(countryName)
+
+        mapView?.onCreate(savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mapView?.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView?.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView?.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mapView?.onStop()
     }
 
     private fun parseState(state: SelectedCountryState) {
@@ -69,7 +91,7 @@ class CountryDetailsFragment : Fragment() {
         countryDetailsArea.text = getString(R.string.area_1_d, countryDetails.area)
         countryDetailsCapital.text = getString(R.string.capital_1_d, countryDetails.capital)
         countryDetailsLanguages.text = getString(R.string.languages_1_s,
-                countryDetails.languages.joinToString(",") { getString(R.string._1_s_2_s, it.name, it.nativeName) })
+                countryDetails.languages.joinToString(", ") { getString(R.string._1_s_2_s, it.name, it.nativeName) })
         countryDetailsName.text = getString(R.string._1_s_2_s, countryDetails.name, countryDetails.nativeName)
         countryDetailsPopulation.text = getString(R.string.population_1_d, countryDetails.population)
         countryDetailsRegion.text = getString(R.string._1_s_2_s, countryDetails.region, countryDetails.subRegion)
@@ -77,7 +99,8 @@ class CountryDetailsFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        mapView?.onDestroy()
         composite.clear()
+        super.onDestroy()
     }
 }

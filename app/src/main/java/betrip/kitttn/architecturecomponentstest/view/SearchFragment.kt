@@ -156,7 +156,7 @@ class SearchFragment : Fragment() {
                     countries.clear()
                     countries.addAll(response.data.map {
                         val mergedName = getString(R.string.country_name_template, it.name, it.nativeName)
-                        ViewCountryName(mergedName, getResourceId(it.isoCode.toLowerCase()))
+                        ViewCountryName(mergedName, it.name, getResourceId(it.isoCode.toLowerCase()))
                     })
                     notifyDataSetChanged()
                 }

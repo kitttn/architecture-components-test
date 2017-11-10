@@ -24,9 +24,9 @@ class CountryNameFlagAdapter(
 
     override fun onBindViewHolder(holder: CountryNameFlagVH?, position: Int) {
         val country = countries[position]
-        holder?.nameTxt?.text = country.name
+        holder?.nameTxt?.text = country.displayName
         holder?.flag?.setImageResource(country.flagId)
-        holder?.view?.setOnClickListener { clickHandler(country.name) }
+        holder?.view?.setOnClickListener { clickHandler(country.realName) }
     }
 
     override fun getItemCount() = countries.size
