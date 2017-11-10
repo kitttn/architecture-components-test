@@ -37,8 +37,8 @@ class SearchFragment : Fragment() {
     private val composite = CompositeDisposable()
     private val adapter by lazy { CountryNameFlagAdapter(mutableListOf()) }
 
-    private lateinit var searchView: SearchView
-    private lateinit var menuItem: MenuItem
+    private var searchView: SearchView? = null
+    private var menuItem: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,9 +67,9 @@ class SearchFragment : Fragment() {
         inflater?.inflate(R.menu.search_menu, menu)
 
         menuItem = menu?.findItem(R.id.search) ?: return
-        searchView = menuItem.actionView as? SearchView ?: return
+        searchView = menuItem?.actionView as? SearchView ?: return
 
-        searchView.maxWidth = Int.MAX_VALUE
+        searchView?.maxWidth = Int.MAX_VALUE
         bindViewModel()
     }
 
@@ -77,10 +77,8 @@ class SearchFragment : Fragment() {
         val textVm = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
         val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
 
-        menuItem.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
+        menuItem?.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
                 { toolbar.setBackgroundResource(R.color.white) }))
-
-        searchView.setOnQueryTextListener(QueryListener(textVm::textChanged))
 
         composite += searchResultsVM.getSearchResults()
                 .observeOn(AndroidSchedulers.mainThread())
@@ -97,21 +95,32 @@ class SearchFragment : Fragment() {
                 .subscribe({
                     Log.i(TAG, "onCreateOptionsMenu: Last text: $it")
                     if (it.isNotEmpty()) {
-                        menuItem.expandActionView()
-                        searchView.setQuery(it, false)
+                        menuItem?.expandActionView()
+                        searchView?.setQuery(it, false)
                     }
+
+                    searchView?.setOnQueryTextListener(QueryListener(textVm::textChanged))
 
                 }, Throwable::printStackTrace)
     }
 
     private fun unbindViewModel() {
-        menuItem.setOnActionExpandListener(null)
-        searchView.setOnQueryTextListener(null)
+        menuItem?.setOnActionExpandListener(null)
+        searchView?.setOnQueryTextListener(null)
+
+        menuItem = null
+        searchView = null
+
         composite.clear()
     }
 
-    override fun onStop() {
+    override fun onDestroy() {
         unbindViewModel()
+        super.onDestroy()
+        Log.i(TAG, "onDestroy: Fragment $this destroyed!")
+    }
+
+    override fun onStop() {
         super.onStop()
         Log.i(TAG, "onStop: Fragment $this is stopped!")
     }
@@ -167,10 +176,18 @@ class CollapseExpandListener(private val collapse: () -> Unit, private val expan
 }
 
 class QueryListener(private val queryChanged: (String) -> Unit) : SearchView.OnQueryTextListener {
+    companion object {
+        private val TAG = QueryListener::class.java.simpleName
+    }
+
     override fun onQueryTextSubmit(query: String?) = false
 
     override fun onQueryTextChange(newText: String?): Boolean {
-        queryChanged(newText ?: "")
+        if (newText == null)
+            return true
+
+        Log.i(TAG, "onQueryTextChange: Querying $newText...")
+        queryChanged(newText)
         return true
     }
 }
