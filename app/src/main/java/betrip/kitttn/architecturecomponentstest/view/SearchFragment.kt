@@ -1,7 +1,6 @@
 package betrip.kitttn.architecturecomponentstest.view
 
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.os.Bundle
 import android.support.annotation.DrawableRes
 import android.support.v4.app.Fragment
@@ -9,7 +8,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
 import android.util.Log
 import android.view.*
-import android.view.inputmethod.InputMethodManager
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
@@ -30,14 +28,17 @@ import javax.inject.Inject
  */
 
 @LifecycleAware
-class SearchFragment : Fragment(), BackPressHandable {
+class SearchFragment : Fragment() {
     companion object {
         private val TAG = "SearchFragment"
     }
 
     @Inject lateinit var factory: Factory<SearchResultsViewModel>
-    private var enteredTextVM: EnteredTextViewModel? = null
     private val composite = CompositeDisposable()
+    private val adapter by lazy { CountryNameFlagAdapter(mutableListOf()) }
+
+    private lateinit var searchView: SearchView
+    private lateinit var menuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,38 +57,41 @@ class SearchFragment : Fragment(), BackPressHandable {
             setSupportActionBar(toolbar)
         }
 
-        enteredTextVM = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
-        val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
-        Log.i(TAG, "onViewCreated: Factory: $factory")
-        Log.i(TAG, "onViewCreated: VM instance: $searchResultsVM")
         Log.i(TAG, "onViewCreated: Fragment $this is created!")
 
         searchResultsRV.layoutManager = LinearLayoutManager(activity)
-        val adapter = CountryNameFlagAdapter(mutableListOf())
         searchResultsRV.adapter = adapter
-
-        composite += searchResultsVM.getSearchResults()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ parseSearchResultResponse(it, adapter) }, Throwable::printStackTrace)
-
-        val textVm = enteredTextVM ?: return
-
-        composite += textVm.getEnteredText()
-                .observeOn(Schedulers.io())
-                .debounce(200, TimeUnit.MILLISECONDS, Schedulers.io())
-                .subscribe(searchResultsVM::startSearch, Throwable::printStackTrace)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater?.inflate(R.menu.search_menu, menu)
 
-        val menuItem = menu?.findItem(R.id.search) ?: return
-        val searchView = menuItem.actionView as? SearchView ?: return
+        menuItem = menu?.findItem(R.id.search) ?: return
+        searchView = menuItem.actionView as? SearchView ?: return
 
         searchView.maxWidth = Int.MAX_VALUE
+        bindViewModel()
+    }
 
-        val textVm = enteredTextVM ?: return
+    private fun bindViewModel() {
+        val textVm = ViewModelProviders.of(activity).get(EnteredTextViewModel::class.java)
+        val searchResultsVM = ViewModelProviders.of(activity, factory).get(SearchResultsViewModel::class.java)
+
+        menuItem.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
+                { toolbar.setBackgroundResource(R.color.white) }))
+
+        searchView.setOnQueryTextListener(QueryListener(textVm::textChanged))
+
+        composite += searchResultsVM.getSearchResults()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({ parseSearchResultResponse(it, adapter, searchResultsVM) }, Throwable::printStackTrace)
+
+        composite += textVm.getEnteredText()
+                .observeOn(Schedulers.io())
+                .debounce(400, TimeUnit.MILLISECONDS, Schedulers.io())
+                .subscribe(searchResultsVM::startSearch, Throwable::printStackTrace)
+
         composite += textVm.getLastQuery()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
@@ -98,27 +102,29 @@ class SearchFragment : Fragment(), BackPressHandable {
                     }
 
                 }, Throwable::printStackTrace)
-
-        menuItem.setOnActionExpandListener(CollapseExpandListener({ toolbar.setBackgroundResource(R.color.colorPrimary) },
-                { toolbar.setBackgroundResource(R.color.white) }))
-
-        searchView.setOnQueryTextListener(QueryListener(textVm::textChanged))
     }
 
-    override fun onBackPressProcessed(): Boolean {
-        return false
+    private fun unbindViewModel() {
+        menuItem.setOnActionExpandListener(null)
+        searchView.setOnQueryTextListener(null)
+        composite.clear()
     }
 
     override fun onStop() {
+        unbindViewModel()
         super.onStop()
-        composite.clear()
         Log.i(TAG, "onStop: Fragment $this is stopped!")
     }
 
-    private fun parseSearchResultResponse(response: SearchResultState, adapter: CountryNameFlagAdapter) {
-        Log.i(TAG, "parseSearchResultResponse: Got new VM state: $response")
+    private fun parseSearchResultResponse(response: SearchResultState,
+                                          adapter: CountryNameFlagAdapter,
+                                          searchVm: SearchResultsViewModel) {
+        Log.i(TAG, "parseSearchResultResponse: Frag id: $this; Got new VM state: $response")
+
+        refreshLayout.isRefreshing = false
         when (response) {
-            is SearchResultLoading -> refreshLayout.isRefreshing = response.loading
+            is InitialSearchResultState -> searchVm.startSearch("")
+            is SearchResultLoading -> refreshLayout.isRefreshing = true
             is SearchResultError -> {
                 /*Toast.makeText(activity, "${response.errorCode}; Reason: ${response.errorReason}", Toast.LENGTH_LONG)
                         .show()*/

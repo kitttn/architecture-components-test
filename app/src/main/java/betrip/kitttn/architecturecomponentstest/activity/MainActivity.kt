@@ -12,10 +12,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-    }
 
-    override fun onStart() {
-        super.onStart()
         supportFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, SearchFragment())
                 .commit()

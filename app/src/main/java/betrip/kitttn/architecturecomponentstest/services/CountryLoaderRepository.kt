@@ -1,60 +1,67 @@
 package betrip.kitttn.architecturecomponentstest.services
 
-import android.util.Log
 import betrip.kitttn.architecturecomponentstest.model.CountriesApi
 import betrip.kitttn.architecturecomponentstest.model.CountryName
+import io.reactivex.Completable
+import io.reactivex.Flowable
 import io.reactivex.Single
-import io.reactivex.subjects.BehaviorSubject
-import java.util.concurrent.TimeUnit
+import io.reactivex.processors.BehaviorProcessor
+import io.reactivex.processors.PublishProcessor
 
 /**
  * @author kitttn
  */
 
 interface CountryLoader {
-    fun getCountryNames(query: String): Single<List<CountryName>>
-    fun reset()
-}
+    /**
+     * Subscribe on this Flowable to get country lists;
+     */
+    val countries: Flowable<List<CountryName>>
 
-class TestCountryLoaderRepository : CountryLoader {
-    override fun reset() {
-    }
-
-    override fun getCountryNames(query: String): Single<List<CountryName>> {
-        return Single
-                .just(listOf("ABC", "CDE", "DEF", "EFG").map { CountryName(it) })
-                .delay(3, TimeUnit.SECONDS)
-    }
+    fun fetchCountries(query: String): Completable
+    fun fetchAllCountries(): Completable
 }
 
 class RestCountryLoaderRepository(private val api: CountriesApi) : CountryLoader {
-    private var previousQuery = ""
-    private var previousResults = emptyList<CountryName>()
-    private var countryNamesSubject = BehaviorSubject.create<List<CountryName>>()
+    private val loadedCountries = mutableListOf<CountryName>()
+    private val countriesProcessor = PublishProcessor
+            .create<List<CountryName>>()
 
     companion object {
         private val TAG = RestCountryLoaderRepository::class.java.simpleName
     }
 
-    override fun getCountryNames(query: String): Single<List<CountryName>> {
-        Log.i(TAG, "getCountryNames: Querying $query...")
+    override val countries: Flowable<List<CountryName>>
+        get() = countriesProcessor
 
-        return countryNamesSubject
-                .flatMapSingle {
-                    val shouldDownload = query.length < previousQuery.length || previousQuery.isEmpty()
-                    if (shouldDownload) {
-                        previousQuery = query
-                        api.getCountriesList(query)
-                    } else Single.just(previousResults)
-                }
-                .doOnNext { previousResults = it }
+    override fun fetchCountries(query: String): Completable {
+        return loadCountries()
                 .map { it.filter { it.name.contains(query, true) } }
-                .first(emptyList())
+                .doOnEvent { list, error -> if (error != null) countriesProcessor.onError(error) else countriesProcessor.onNext(list) }
+                .toCompletable()
+
     }
 
-    override fun reset() {
-        previousQuery = ""
-        countryNamesSubject.onNext(emptyList())
-        previousResults = emptyList()
+    override fun fetchAllCountries(): Completable = loadCountries()
+            .doOnEvent { list, error -> if (error != null) countriesProcessor.onError(error) else countriesProcessor.onNext(list) }
+            .toCompletable()
+
+    private fun loadCountries(): Single<List<CountryName>> {
+        return Single.just(true)
+                .flatMap {
+                    if (loadedCountries.isEmpty())
+                        api.getAllCountries()
+                                .map { CountriesCache(it, true) }
+                    else Single.just(CountriesCache(loadedCountries, false))
+                }
+                .map {
+                    if (it.shouldCache) {
+                        loadedCountries.clear()
+                        loadedCountries += it.countries
+                    }
+                    it.countries
+                }
     }
 }
+
+data class CountriesCache(val countries: List<CountryName>, val shouldCache: Boolean)

@@ -4,6 +4,7 @@ import android.arch.lifecycle.ViewModel
 import betrip.kitttn.architecturecomponentstest.model.CountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.services.CountryLoader
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -16,7 +17,9 @@ import io.reactivex.subjects.BehaviorSubject
 
 sealed class SearchResultState
 
-data class SearchResultLoading(val loading: Boolean = true) : SearchResultState()
+class InitialSearchResultState : SearchResultState()
+
+class SearchResultLoading : SearchResultState()
 
 data class SearchResultSuccess(val data: List<CountryName>) : SearchResultState()
 
@@ -31,23 +34,30 @@ class SearchResultsViewModel(private val countryLoader: CountryLoader) : ViewMod
     private val searchResults = BehaviorSubject.create<SearchResultState>()
     private val composite = CompositeDisposable()
 
+    init {
+        searchResults.onNext(InitialSearchResultState())
+
+        composite += countryLoader.countries
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ searchResults.onNext(SearchResultSuccess(it)) },
+                        { searchResults.onNext(SearchResultError(it.localizedMessage, SearchResultError.ERROR_OTHER)) })
+    }
+
     fun startSearch(query: String) {
         if (query.isEmpty()) {
-            countryLoader.reset()
+            fetchData { countryLoader.fetchAllCountries() }
             return
         }
 
+        fetchData { countryLoader.fetchCountries(query) }
+    }
+
+    private fun fetchData(completable: () -> Completable) {
         searchResults.onNext(SearchResultLoading())
-        composite += countryLoader.getCountryNames(query)
+        composite += completable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    searchResults.onNext(SearchResultLoading(false))
-                    searchResults.onNext(SearchResultSuccess(it))
-                }, {
-                    searchResults.onNext(SearchResultLoading(false))
-                    searchResults.onNext(SearchResultError("Some reason", SearchResultError.ERROR_OTHER))
-                })
+                .subscribe({}, Throwable::printStackTrace)
     }
 
     fun getSearchResults(): Observable<SearchResultState> = searchResults

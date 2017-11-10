@@ -14,11 +14,13 @@ class EnteredTextViewModel : ViewModel() {
     private var lastQuery = ""
 
     fun getEnteredText(): Observable<String> = enteredText
-            .doOnNext { lastQuery = it }
 
     fun getLastQuery(): Single<String> {
         return Single.just(lastQuery)
     }
 
-    fun textChanged(enteredText: String) = this.enteredText.onNext(enteredText)
+    fun textChanged(enteredText: String) {
+        lastQuery = enteredText
+        this.enteredText.onNext(enteredText)
+    }
 }
