@@ -35,7 +35,9 @@ class SearchFragment : Fragment() {
 
     @Inject lateinit var factory: Factory<SearchResultsViewModel>
     private val composite = CompositeDisposable()
-    private val adapter by lazy { CountryNameFlagAdapter(mutableListOf()) }
+    private val adapter by lazy {
+        CountryNameFlagAdapter(mutableListOf(), this::openDetailsFragment)
+    }
 
     private var searchView: SearchView? = null
     private var menuItem: MenuItem? = null
@@ -71,6 +73,14 @@ class SearchFragment : Fragment() {
 
         searchView?.maxWidth = Int.MAX_VALUE
         bindViewModel()
+    }
+
+    private fun openDetailsFragment(name: String) {
+        activity.supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, CountryDetailsFragment.newInstance(name))
+                .addToBackStack("details")
+                .commit()
     }
 
     private fun bindViewModel() {

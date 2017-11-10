@@ -2,7 +2,7 @@ package betrip.kitttn.architecturecomponentstest.activity
 
 import android.os.Bundle
 import betrip.kitttn.architecturecomponentstest.R
-import betrip.kitttn.architecturecomponentstest.view.CountryDetailsFragment
+import betrip.kitttn.architecturecomponentstest.view.SearchFragment
 
 /**
  * @author kitttn
@@ -14,7 +14,7 @@ class MainActivity : BaseActivity() {
         setContentView(R.layout.activity_main)
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, CountryDetailsFragment.newInstance("Colombia"))
+                .replace(R.id.fragmentContainer, SearchFragment())
                 .commit()
     }
 }
