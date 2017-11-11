@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.*
 import betrip.kitttn.architecturecomponentstest.R
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity
+import betrip.kitttn.architecturecomponentstest.activity.MainActivity
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory
 import betrip.kitttn.architecturecomponentstest.getFlagResIdByCode
@@ -76,11 +77,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun openDetailsFragment(name: String) {
-        activity.supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.fragmentContainer, CountryDetailsFragment.newInstance(name))
-                .addToBackStack("details")
-                .commit()
+        (activity as MainActivity).openCountryDetails(name)
     }
 
     private fun bindViewModel() {

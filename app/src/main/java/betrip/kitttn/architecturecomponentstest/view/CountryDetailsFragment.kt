@@ -31,7 +31,7 @@ import javax.inject.Inject
  */
 
 class CountryDetailsFragment : Fragment() {
-    private lateinit var countryName: String
+    private val countryName: String by lazy { arguments.getString("name", "") }
     @Inject lateinit var factory: Factory<SelectedCountryViewModel>
 
     private val selectedCountry by lazy { ViewModelProviders.of(activity, factory).get(SelectedCountryViewModel::class.java) }
@@ -40,7 +40,9 @@ class CountryDetailsFragment : Fragment() {
     companion object {
         private val TAG = CountryDetailsFragment::class.java.simpleName
         fun newInstance(_countryName: String): CountryDetailsFragment =
-                CountryDetailsFragment().apply { countryName = _countryName }
+                CountryDetailsFragment().apply {
+                    arguments = Bundle().apply { putString("name", _countryName) }
+                }
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -85,9 +87,9 @@ class CountryDetailsFragment : Fragment() {
     }
 
     private fun parseState(state: SelectedCountryState) {
-        countryDetailsLoader.visibility = View.GONE
+        countryDetailsLoader?.visibility = View.GONE
         when (state) {
-            is CountryLoadingState -> countryDetailsLoader.visibility = View.VISIBLE
+            is CountryLoadingState -> countryDetailsLoader?.visibility = View.VISIBLE
             is CountryLoadSuccessState -> bindFragment(state.country)
             is CountryLoadErrorState -> Toast.makeText(activity, state.error, Toast.LENGTH_LONG).show()
         }
