@@ -1,7 +1,6 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
 import android.arch.lifecycle.ViewModel
-import io.reactivex.processors.BehaviorProcessor
 
 /**
  * @author kitttn

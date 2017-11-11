@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -55,6 +56,7 @@ class CountryDetailsFragment : Fragment() {
             lifecycleComponent.inject(this@CountryDetailsFragment)
             setSupportActionBar(toolbar)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setDisplayShowHomeEnabled(true)
         }
 
         composite += selectedCountry.countryDetails()
@@ -64,6 +66,7 @@ class CountryDetailsFragment : Fragment() {
         selectedCountry.fetchCountryDetails(countryName)
 
         mapView?.onCreate(savedInstanceState)
+        toolbar.setNavigationOnClickListener { activity.supportFragmentManager.popBackStack() }
     }
 
     override fun onStart() {
