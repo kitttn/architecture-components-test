@@ -19,6 +19,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -50,4 +55,7 @@ dependencies {
     implementation group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: '2.3.0'
 
     implementation 'com.google.android.gms:play-services-maps:11.6.0'
+
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    kapt 'com.jakewharton:butterknife-compiler:8.8.1'
 }

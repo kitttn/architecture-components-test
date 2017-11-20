@@ -56,7 +56,7 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         with(activity as BaseActivity) {
-            lifecycleComponent.inject(this@SearchFragment)
+            lifecycleComponent?.inject(this@SearchFragment)
             setSupportActionBar(toolbar)
         }
 
