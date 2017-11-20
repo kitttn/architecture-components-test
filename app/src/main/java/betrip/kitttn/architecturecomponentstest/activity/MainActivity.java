@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import betrip.kitttn.architecturecomponentstest.R;
-import betrip.kitttn.architecturecomponentstest.view.CountryDetailsFragmentUpd;
+import betrip.kitttn.architecturecomponentstest.view.CountryDetailsFragment;
 import betrip.kitttn.architecturecomponentstest.view.SearchFragment;
 import betrip.kitttn.architecturecomponentstest.vm.ActivityViewModel;
 import betrip.kitttn.architecturecomponentstest.vm.AppStartedState;
@@ -35,7 +35,7 @@ public class MainActivity extends BaseActivity {
 
     public void openCountryDetails(String countryName) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, CountryDetailsFragmentUpd.newInstance(countryName))
+                .replace(R.id.fragmentContainer, CountryDetailsFragment.newInstance(countryName))
                 .addToBackStack("details")
                 .commit();
     }

@@ -46,7 +46,7 @@ import io.reactivex.disposables.Disposable;
  * @author kitttn
  */
 
-public class CountryDetailsFragmentUpd extends Fragment {
+public class CountryDetailsFragment extends Fragment {
     private String countryName = "";
     @Inject Factory<SelectedCountryViewModel> factory;
     private CompositeDisposable composite = new CompositeDisposable();
@@ -61,8 +61,8 @@ public class CountryDetailsFragmentUpd extends Fragment {
     @BindView(R.id.countryDetailsPopulation) TextView countryDetailsPopulation;
     @BindView(R.id.countryDetailsRegion) TextView countryDetailsRegion;
 
-    public static CountryDetailsFragmentUpd newInstance(String _countryName) {
-        CountryDetailsFragmentUpd fragment = new CountryDetailsFragmentUpd();
+    public static CountryDetailsFragment newInstance(String _countryName) {
+        CountryDetailsFragment fragment = new CountryDetailsFragment();
         Bundle b = new Bundle();
         b.putString("name", _countryName);
         fragment.setArguments(b);
