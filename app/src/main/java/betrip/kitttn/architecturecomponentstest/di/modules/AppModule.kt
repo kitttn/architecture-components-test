@@ -4,10 +4,10 @@ import android.arch.persistence.room.Room
 import android.content.Context
 import betrip.kitttn.architecturecomponentstest.model.CountriesApi
 import betrip.kitttn.architecturecomponentstest.model.RoomCountryDatabase
-import betrip.kitttn.architecturecomponentstest.services.CachedCountryDetailsLoader
 import betrip.kitttn.architecturecomponentstest.services.CountryDetailsLoader
 import betrip.kitttn.architecturecomponentstest.services.CountryNamesLoader
-import betrip.kitttn.architecturecomponentstest.services.RestCountryNamesLoaderRepository
+import betrip.kitttn.architecturecomponentstest.services.implementation.CachedCountryDetailsLoader
+import betrip.kitttn.architecturecomponentstest.services.implementation.RestCountryNamesLoader
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -46,11 +46,11 @@ class AppModule(appContext: Context, private val serverUrl: String = "https://re
     }
 
     @Provides @Singleton
-    fun provideCountryLoader(api: CountriesApi): CountryNamesLoader = RestCountryNamesLoaderRepository(api)
+    fun provideCountryLoader(api: CountriesApi): CountryNamesLoader = RestCountryNamesLoader(api)
 
     @Provides @Singleton
     fun provideDetailsLoader(api: CountriesApi, roomCountryDatabase: RoomCountryDatabase): CountryDetailsLoader =
-            CachedCountryDetailsLoader(api, roomCountryDatabase)
+            CachedCountryDetailsLoader(roomCountryDatabase, api)
 
     @Provides @Singleton
     fun provideRoomDb() = roomDb

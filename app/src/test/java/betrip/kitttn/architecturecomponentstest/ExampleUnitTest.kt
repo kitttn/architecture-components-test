@@ -1,9 +1,9 @@
 package betrip.kitttn.architecturecomponentstest
 
 import betrip.kitttn.architecturecomponentstest.model.CountriesApi
-import betrip.kitttn.architecturecomponentstest.model.CountryDetails
-import betrip.kitttn.architecturecomponentstest.model.CountryName
-import betrip.kitttn.architecturecomponentstest.services.RestCountryNamesLoaderRepository
+import betrip.kitttn.architecturecomponentstest.model.entities.CountryDetails
+import betrip.kitttn.architecturecomponentstest.model.entities.CountryName
+import betrip.kitttn.architecturecomponentstest.services.implementation.RestCountryNamesLoader
 import betrip.kitttn.architecturecomponentstest.vm.EnteredTextViewModel
 import io.reactivex.Single
 import org.junit.Test
@@ -51,7 +51,7 @@ class ExampleUnitTest {
             }
         }
 
-        val countryLoaderRepository = RestCountryNamesLoaderRepository(testApi)
+        val countryLoaderRepository = RestCountryNamesLoader(testApi)
         countryLoaderRepository.countries
                 .subscribe({ println("Result: $it") }, Throwable::printStackTrace)
 

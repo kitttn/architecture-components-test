@@ -1,7 +1,7 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
 import android.arch.lifecycle.ViewModel
-import betrip.kitttn.architecturecomponentstest.model.CountryDetails
+import betrip.kitttn.architecturecomponentstest.model.entities.CountryDetails
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.services.CountryDetailsLoader
 import io.reactivex.Flowable

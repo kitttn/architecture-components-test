@@ -29,8 +29,8 @@ import javax.inject.Inject;
 import betrip.kitttn.architecturecomponentstest.R;
 import betrip.kitttn.architecturecomponentstest.activity.BaseActivity;
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory;
-import betrip.kitttn.architecturecomponentstest.model.CountryDetails;
-import betrip.kitttn.architecturecomponentstest.model.Language;
+import betrip.kitttn.architecturecomponentstest.model.entities.CountryDetails;
+import betrip.kitttn.architecturecomponentstest.model.entities.Language;
 import betrip.kitttn.architecturecomponentstest.vm.CountryLoadErrorState;
 import betrip.kitttn.architecturecomponentstest.vm.CountryLoadSuccessState;
 import betrip.kitttn.architecturecomponentstest.vm.CountryLoadingState;
@@ -144,7 +144,7 @@ public class CountryDetailsFragmentUpd extends Fragment {
         countryDetailsCapital.setText(getString(R.string.capital_1_d, countryDetails.getCapital()));
         List<String> languages = new ArrayList<>();
         for (Language language : countryDetails.getLanguages())
-            languages.add(getString(R.string._1_s_2_s, language.getName(), language.getNativeName()));
+            languages.add(getString(R.string._1_s_2_s, language.name, language.nativeName));
         String lngs = TextUtils.join(", ", languages);
         countryDetailsLanguages.setText(getString(R.string.languages_1_s, lngs));
         countryDetailsName.setText(getString(R.string._1_s_2_s, countryDetails.getName(), countryDetails.getNativeName()));

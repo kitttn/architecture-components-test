@@ -1,7 +1,7 @@
 package betrip.kitttn.architecturecomponentstest.vm
 
 import android.arch.lifecycle.ViewModel
-import betrip.kitttn.architecturecomponentstest.model.CountryName
+import betrip.kitttn.architecturecomponentstest.model.entities.CountryName
 import betrip.kitttn.architecturecomponentstest.plusAssign
 import betrip.kitttn.architecturecomponentstest.services.CountryNamesLoader
 import io.reactivex.Completable
