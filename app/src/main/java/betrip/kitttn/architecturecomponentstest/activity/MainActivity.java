@@ -8,7 +8,6 @@ import betrip.kitttn.architecturecomponentstest.R;
 import betrip.kitttn.architecturecomponentstest.view.CountryDetailsFragment;
 import betrip.kitttn.architecturecomponentstest.view.SearchFragment;
 import betrip.kitttn.architecturecomponentstest.vm.ActivityViewModel;
-import betrip.kitttn.architecturecomponentstest.vm.AppStartedState;
 
 /**
  * @author kitttn
@@ -22,7 +21,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         viewModel = ViewModelProviders.of(this).get(ActivityViewModel.class);
-        if (viewModel.getCurrentState() instanceof AppStartedState)
+        if (viewModel.currentState == ActivityViewModel.State.STARTED)
             openSearch();
     }
 

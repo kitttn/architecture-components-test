@@ -19,17 +19,17 @@ class ExampleUnitTest {
         val enteredTextViewModel = EnteredTextViewModel()
         enteredTextViewModel.textChanged("Hello")
 
-        enteredTextViewModel.getEnteredText()
+        enteredTextViewModel.enteredText
                 .subscribe({ println(it) }, Throwable::printStackTrace)
 
-        enteredTextViewModel.getLastQuery()
+        enteredTextViewModel.lastQuery
                 .test()
                 .assertValues("Hello")
                 .assertComplete()
 
         enteredTextViewModel.textChanged("World!")
 
-        enteredTextViewModel.getLastQuery()
+        enteredTextViewModel.lastQuery
                 .test()
                 .assertValues("World!")
                 .assertComplete()

@@ -5,8 +5,8 @@ import android.arch.lifecycle.ViewModelProvider
 import betrip.kitttn.architecturecomponentstest.di.LifecycleAware
 import betrip.kitttn.architecturecomponentstest.services.CountryDetailsLoader
 import betrip.kitttn.architecturecomponentstest.services.CountryNamesLoader
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultsViewModel
-import betrip.kitttn.architecturecomponentstest.vm.SelectedCountryViewModel
+import betrip.kitttn.architecturecomponentstest.vm.search_results.SearchResultsViewModel
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.SelectedCountryViewModel
 import dagger.Module
 import dagger.Provides
 

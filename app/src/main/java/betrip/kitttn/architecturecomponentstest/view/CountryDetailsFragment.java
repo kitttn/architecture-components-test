@@ -31,11 +31,11 @@ import betrip.kitttn.architecturecomponentstest.activity.BaseActivity;
 import betrip.kitttn.architecturecomponentstest.di.modules.Factory;
 import betrip.kitttn.architecturecomponentstest.model.entities.CountryDetails;
 import betrip.kitttn.architecturecomponentstest.model.entities.Language;
-import betrip.kitttn.architecturecomponentstest.vm.CountryLoadErrorState;
-import betrip.kitttn.architecturecomponentstest.vm.CountryLoadSuccessState;
-import betrip.kitttn.architecturecomponentstest.vm.CountryLoadingState;
-import betrip.kitttn.architecturecomponentstest.vm.SelectedCountryState;
-import betrip.kitttn.architecturecomponentstest.vm.SelectedCountryViewModel;
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.SelectedCountryViewModel;
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.state.ErrorSelectedCountryState;
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.state.LoadingSelectedCountryState;
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.state.SelectedCountryState;
+import betrip.kitttn.architecturecomponentstest.vm.selected_country.state.SuccessSelectedCountryState;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -118,9 +118,9 @@ public class CountryDetailsFragment extends Fragment {
             activity.getSupportActionBar().setDisplayShowHomeEnabled(true);
 
             SelectedCountryViewModel vm = ViewModelProviders.of(activity, factory).get(SelectedCountryViewModel.class);
-            Disposable d = vm.countryDetails()
+            Disposable d = vm.getCountryDetails()
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::parseState, err -> this.parseState(new CountryLoadErrorState(err.getLocalizedMessage())));
+                    .subscribe(this::parseState);
 
             composite.add(d);
 
@@ -132,11 +132,14 @@ public class CountryDetailsFragment extends Fragment {
 
     private void parseState(SelectedCountryState state) {
         loader.setVisibility(View.GONE);
-        if (state instanceof CountryLoadingState) loader.setVisibility(View.VISIBLE);
-        if (state instanceof CountryLoadSuccessState)
-            bindFragment(((CountryLoadSuccessState) state).getCountry());
-        if (state instanceof CountryLoadErrorState)
-            Toast.makeText(getActivity(), ((CountryLoadErrorState) state).getError(), Toast.LENGTH_LONG).show();
+        if (state instanceof LoadingSelectedCountryState) loader.setVisibility(View.VISIBLE);
+        if (state instanceof SuccessSelectedCountryState)
+            bindFragment(((SuccessSelectedCountryState) state).country);
+        if (state instanceof ErrorSelectedCountryState) {
+            ErrorSelectedCountryState.ErrorCode code = ((ErrorSelectedCountryState) state).error;
+            if (code == ErrorSelectedCountryState.ErrorCode.NO_NETWORK)
+                Toast.makeText(getActivity(), "No network connection found :(", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void bindFragment(CountryDetails countryDetails) {

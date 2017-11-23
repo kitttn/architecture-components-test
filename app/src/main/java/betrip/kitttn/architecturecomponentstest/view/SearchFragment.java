@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +33,12 @@ import betrip.kitttn.architecturecomponentstest.model.entities.CountryName;
 import betrip.kitttn.architecturecomponentstest.view.adapters.CountryNameFlagAdapter;
 import betrip.kitttn.architecturecomponentstest.view.adapters.Handler;
 import betrip.kitttn.architecturecomponentstest.vm.EnteredTextViewModel;
-import betrip.kitttn.architecturecomponentstest.vm.InitialSearchResultState;
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultError;
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultLoading;
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultState;
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultSuccess;
-import betrip.kitttn.architecturecomponentstest.vm.SearchResultsViewModel;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.SearchResultsViewModel;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.state.ErrorSearchResultState;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.state.InitialSearchResultState;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.state.LoadingSearchResultState;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.state.SearchResultState;
+import betrip.kitttn.architecturecomponentstest.vm.search_results.state.SuccessSearchResultState;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -104,7 +105,7 @@ public class SearchFragment extends Fragment {
         SearchResultsViewModel searchResultsVM =
                 ViewModelProviders.of(getActivity(), factory).get(SearchResultsViewModel.class);
 
-        refreshLayout.setOnRefreshListener(() -> searchView.setQuery("", false));
+        refreshLayout.setOnRefreshListener(() -> searchResultsVM.startSearch(textVm.getLastQuery()));
 
         menuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override public boolean onMenuItemActionExpand(MenuItem menuItem) {
@@ -132,18 +133,13 @@ public class SearchFragment extends Fragment {
 
         composite.add(d);
 
-        d = textVm.getLastQuery()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(it -> {
-                    Log.i(TAG, "onCreateOptionsMenu: Last text: " + it);
-                    if (!it.isEmpty()) {
-                        menuItem.expandActionView();
-                        searchView.setQuery(it, false);
-                    }
-                    searchView.setOnQueryTextListener(new QueryListener(textVm::textChanged));
-                }, Throwable::printStackTrace);
+        String query = textVm.getLastQuery();
+        if (!query.isEmpty()) {
+            menuItem.expandActionView();
+            searchView.setQuery(query, false);
+        }
 
-        composite.add(d);
+        searchView.setOnQueryTextListener(new QueryListener(textVm::textChanged));
     }
 
     private void unbindViewModel() {
@@ -168,23 +164,24 @@ public class SearchFragment extends Fragment {
     }
 
     private void parseSearchResultResponse(SearchResultState response, SearchResultsViewModel searchVm) {
-        Log.i(TAG, "parseSearchResultResponse: Frag id: $this; Got new VM state: $response");
+        Log.i(TAG, "parseSearchResultResponse: Frag id: " + this + "; Got new VM state: " + response);
         BaseActivity activity = ((BaseActivity) getActivity());
 
         refreshLayout.setRefreshing(false);
         if (response instanceof InitialSearchResultState)
             searchVm.startSearch("");
 
-        if (response instanceof SearchResultLoading)
+        if (response instanceof LoadingSearchResultState)
             refreshLayout.setRefreshing(true);
 
-        if (response instanceof SearchResultError) {
-            int code = ((SearchResultError) response).getErrorCode();
-            // TODO: parse error and show here
+        if (response instanceof ErrorSearchResultState) {
+            ErrorSearchResultState.ErrorCode code = ((ErrorSearchResultState) response).error;
+            if (code == ErrorSearchResultState.ErrorCode.NO_NETWORK)
+                Toast.makeText(activity, "No network connection found :(", Toast.LENGTH_LONG).show();
         }
 
-        if (response instanceof SearchResultSuccess) {
-            List<CountryName> countries = ((SearchResultSuccess) response).getData();
+        if (response instanceof SuccessSearchResultState) {
+            List<CountryName> countries = ((SuccessSearchResultState) response).data;
             List<ViewCountryName> resulting = new ArrayList<>();
             for (CountryName country : countries) {
                 String name = getString(R.string.country_name_template, country.name, country.nativeName);

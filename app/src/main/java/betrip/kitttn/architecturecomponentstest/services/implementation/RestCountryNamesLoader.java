@@ -35,8 +35,7 @@ public class RestCountryNamesLoader implements CountryNamesLoader {
                 .filter(it -> it.name.toLowerCase().contains(query.toLowerCase()))
                 .toList()
                 .doOnEvent((list, error) -> {
-                    if (error != null) countriesProcessor.onError(error);
-                    else countriesProcessor.onNext(list);
+                    if (error == null) countriesProcessor.onNext(list);
                 })
                 .toCompletable();
     }
@@ -44,8 +43,7 @@ public class RestCountryNamesLoader implements CountryNamesLoader {
     @Override public Completable fetchAllCountries() {
         return loadCountries()
                 .doOnEvent((list, error) -> {
-                    if (error != null) countriesProcessor.onError(error);
-                    else countriesProcessor.onNext(list);
+                    if (error == null) countriesProcessor.onNext(list);
                 })
                 .toCompletable();
     }
